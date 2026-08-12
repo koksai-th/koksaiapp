@@ -1,0 +1,47 @@
+{
+  "name": "koksaiapp",
+  "version": "1.2016.4",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check": "npm run audit:source && npm run build",
+    "preview": "vite preview --host 0.0.0.0",
+    "cap:sync": "npx --yes --package @capacitor/cli@8.3.3 cap sync",
+    "audit:source": "node scripts/source-audit.cjs"
+  },
+  "dependencies": {
+    "@capacitor-community/media": "^9.1.0",
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/device": "^8.0.3",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/geolocation": "^8.2.1",
+    "@capacitor/push-notifications": "^8.1.2",
+    "@firebase/app": "^0.15.1",
+    "@firebase/messaging": "^0.13.0",
+    "@supabase/supabase-js": "^2.110.7",
+    "firebase": "^12.16.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.462.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.13",
+    "supabase": "^2.113.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6.0.3",
+    "vite": "^5.4.21"
+  },
+  "allowScripts": {
+    "@firebase/util@1.15.1": true,
+    "esbuild@0.21.5": true,
+    "protobufjs@7.6.5": true
+  }
+}
