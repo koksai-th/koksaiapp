@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1068920183037",
+    "project_id": "koksaiapp",
+    "storage_bucket": "koksaiapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068920183037:android:22d1d53af2a0bb25458694",
+        "android_client_info": {
+          "package_name": "com.koksai.rescue"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAt2BceZ_FbNUHq3UFXsTZZHC94Kqi9CyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
