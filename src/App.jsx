@@ -15,7 +15,6 @@ import hqLogo from "/hq-logo.png";
 import bgLogo from "/bgload.png";
 import Login from "./pages/AuthPage";
 import FirstLoginPasswordGate from "./components/FirstLoginPasswordGate";
-import PermissionSetup from "./pages/PermissionSetup";
 import {
   TABS,
   HQ_ENG_NAME,
@@ -172,13 +171,19 @@ function buildCommandCenterMessage(draft) {
 
 
 function EmergencyHeaderAlertBar() {
+  const alertText =
+    "หน่วยกู้ภัยกกไทร จังหวัดเพชรบูรณ์ • พร้อมปฏิบัติการตลอด 24 ชั่วโมง โทร 056 701 813 วิทยุความถี่ 168.775 Mhz";
+
   return (
     <div className="rescue-alert-bar pointer-events-none absolute left-3 right-3 top-3 z-20 flex min-h-9 items-center justify-between gap-3 rounded-xl border border-[#e1c578]/55 bg-[#4f0a15]/88 px-3 py-2 text-white shadow-[0_8px_20px_rgba(29,4,10,0.22)] backdrop-blur sm:left-4 sm:right-4 lg:left-5 lg:right-5">
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
         <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#e8c86f] shadow-[0_0_0_4px_rgba(232,200,111,0.14)]" />
-        <span className="truncate text-[10px] font-black tracking-[0.08em] text-[#fff4cf] sm:text-xs">
-          หน่วยกู้ภัยกกไทร จังหวัดเพชรบูรณ์ • พร้อมปฏิบัติการตลอด 24 ชั่วโมง โทร 056 701 813 วิทยุความถี่ 168.775 Mhz
-        </span>
+        <div className="rescue-alert-marquee min-w-0 flex-1 overflow-hidden">
+          <div className="rescue-alert-marquee-track text-[10px] font-black tracking-[0.08em] text-[#fff4cf] sm:text-xs">
+            <span>{alertText}</span>
+            <span aria-hidden="true">{alertText}</span>
+          </div>
+        </div>
       </div>
       <span className="shrink-0 rounded-lg border border-[#ead58f]/45 bg-white/10 px-2 py-1 text-[10px] font-black text-[#ffe8a7] sm:text-xs">
         ฉุกเฉิน 1669
@@ -194,6 +199,30 @@ function EmergencyHeaderStyle() {
         background-image:
           linear-gradient(90deg, rgba(255,255,255,0.05), transparent 34%),
           repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 9px);
+      }
+
+      .rescue-alert-marquee-track {
+        display: flex;
+        width: max-content;
+        animation: rescueAlertMarquee 22s linear infinite;
+        will-change: transform;
+      }
+
+      .rescue-alert-marquee-track > span {
+        flex: none;
+        padding-right: 3rem;
+        white-space: nowrap;
+      }
+
+      @keyframes rescueAlertMarquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .rescue-alert-marquee-track {
+          animation: none;
+        }
       }
     `}</style>
   );
@@ -446,6 +475,9 @@ function RescueAppShell({ session, profile, onLogout }) {
       setNotificationEnabled(true);
       localStorage.setItem("fcm_token", normalizedToken);
       localStorage.setItem("noti_enabled", "true");
+      window.sessionStorage.removeItem(
+        `notification_prompt_dismissed:${session.user.id}`,
+      );
       return normalizedToken;
     };
 
@@ -747,7 +779,11 @@ function RescueAppShell({ session, profile, onLogout }) {
       }
 
       try {
-        const data = await getActiveDeviceTokenForUser(session.user.id, savedToken);
+        // A token from another device must not suppress this device's prompt.
+        // Only validate the token stored locally for the current browser/app.
+        const data = savedToken
+          ? await getActiveDeviceTokenForUser(session.user.id, savedToken)
+          : null;
         if (cancelled) return;
 
         if (data?.token) {
@@ -760,12 +796,20 @@ function RescueAppShell({ session, profile, onLogout }) {
           setDeviceToken(savedToken);
           setNotificationEnabled(false);
           localStorage.removeItem("noti_enabled");
+          const promptDismissedKey = `notification_prompt_dismissed:${session.user.id}`;
           const dismissedForSession =
-            window.sessionStorage.getItem("notification_prompt_dismissed") === "true";
+            window.sessionStorage.getItem(promptDismissedKey) === "true";
           setShowNotificationPrompt(!dismissedForSession);
         } 
       } catch (err) {
         console.error("check device token error:", err);
+        if (!cancelled) {
+          setNotificationEnabled(false);
+          const promptDismissedKey = `notification_prompt_dismissed:${session.user.id}`;
+          const dismissedForSession =
+            window.sessionStorage.getItem(promptDismissedKey) === "true";
+          setShowNotificationPrompt(!dismissedForSession);
+        }
       }
     };
 
@@ -788,8 +832,11 @@ function RescueAppShell({ session, profile, onLogout }) {
   };
 
   const dismissNotificationPrompt = () => {
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("notification_prompt_dismissed", "true");
+    if (typeof window !== "undefined" && session?.user?.id) {
+      window.sessionStorage.setItem(
+        `notification_prompt_dismissed:${session.user.id}`,
+        "true",
+      );
     }
     setShowNotificationPrompt(false);
   };
@@ -2101,7 +2148,7 @@ function RescueAppShell({ session, profile, onLogout }) {
               เปิดรับการแจ้งเตือน
             </h2>
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              อนุญาตให้ระบบแจ้งงานใหม่และข้อมูลสำคัญจากศูนย์สั่งการบนอุปกรณ์นี้
+              อนุญาตให้ระบบแจ้งเตือนทันทีเมื่อมีเหตุ บนอุปกรณ์นี้
             </p>
             <button
               type="button"
@@ -2647,7 +2694,6 @@ function App() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [permissionChecked, setPermissionChecked] = useState(false);
 
   const forceLoginScreen = () => {
     setSession(null);
@@ -2678,6 +2724,11 @@ function App() {
 
   useEffect(() => {
     let mounted = true;
+
+    // Normalize links left behind by the retired permission setup route.
+    if (typeof window !== "undefined" && window.location.pathname === "/permission-setup") {
+      window.history.replaceState(null, "", "/");
+    }
 
     const init = async () => {
       try {
@@ -2728,16 +2779,6 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!session) {
-      setPermissionChecked(false);
-      return;
-    }
-
-    const completed = localStorage.getItem("permission_setup_completed") === "true";
-    setPermissionChecked(completed);
-  }, [session]);
-
   if (loading) return <LoadingScreen />;
   if (!session) return <CommandCenterLoginScreen />;
 
@@ -2748,17 +2789,6 @@ function App() {
         onLogout={async () => {
           await supabase.auth.signOut();
           forceLoginScreen();
-        }}
-      />
-    );
-  }
-
-  if (!permissionChecked) {
-    return (
-      <PermissionSetup
-        onComplete={() => {
-          localStorage.setItem("permission_setup_completed", "true");
-          setPermissionChecked(true);
         }}
       />
     );

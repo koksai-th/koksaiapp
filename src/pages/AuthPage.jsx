@@ -524,18 +524,7 @@ export default function AuthPage({ initialMode = "login", embedded = false, onCl
         return;
       }
 
-      // หลัง Login สำเร็จ ให้ตั้งค่า Permission อุปกรณ์ก่อนเข้าใช้งานระบบ
-      // เพื่อขอ Location / Notification / Storage / Microphone ในขั้นตอนถัดไป
-      const permissionSetupDone =
-        localStorage.getItem("permission_setup");
-
-      if (!permissionSetupDone) {
-        window.location.href = "/permission-setup";
-        return;
-      }
-
-      // RescueAppShell จะแสดงป๊อปอัพให้ผู้ใช้ตัดสินใจก่อนขอสิทธิ์จากระบบ
-      // และบันทึก token หลังผู้ใช้กดอนุญาต
+      // App auth listener will continue into the application after login.
     } catch (err) {
       console.error("LOGIN CATCH ERROR:", err);
       setError(err?.message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
